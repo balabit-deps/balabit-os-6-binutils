@@ -1,0 +1,23 @@
+# DP: Fix PR ld/20428 (ppc64le), taken from the 2.26 branch.
+
+bfd/
+
+2016-08-02  Alan Modra  <amodra@gmail.com>
+
+	PR ld/20428
+	* elf64-ppc.c (ppc_get_stub_entry): Don't segfault on NULL group.
+
+ 
+diff --git a/bfd/elf64-ppc.c b/bfd/elf64-ppc.c
+index aa6fe08..2b2b9d1 100644
+--- a/bfd/elf64-ppc.c
++++ b/bfd/elf64-ppc.c
+@@ -4504,6 +4504,8 @@ ppc_get_stub_entry (const asection *input_section,
+      more than one stub used to reach say, printf, and we need to
+      distinguish between them.  */
+   group = htab->sec_info[input_section->id].u.group;
++  if (group == NULL)
++    return NULL;
+ 
+   if (h != NULL && h->u.stub_cache != NULL
+       && h->u.stub_cache->h == h

@@ -1,0 +1,5 @@
+@PKG@ binary: package-name-doesnt-match-sonames
+@PKG@ binary: non-standard-dir-in-usr
+
+# needed for kfreebsd and the hurd
+@PKG@ binary: file-in-unusual-dir
