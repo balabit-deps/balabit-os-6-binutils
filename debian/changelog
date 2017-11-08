@@ -1,3 +1,29 @@
+binutils (2.26.1-1ubuntu1~16.04.6) xenial; urgency=medium
+
+  * pr19353.diff: Fix internal error when applying TLSDESC relocations with no TLS
+    segment. (LP: #1722162)
+
+ -- Timo Aaltonen <tjaalton@debian.org>  Wed, 08 Nov 2017 18:06:03 +0200
+
+binutils (2.26.1-1ubuntu1~16.04.5) xenial-proposed; urgency=medium
+
+  * SRU: LP: #1696686.
+  * Fix PR ld/20608: Relocation truncated to fit: R_ARM_THM_JUMP24 for
+    relocation to PLT entry.
+
+ -- Matthias Klose <doko@ubuntu.com>  Mon, 21 Aug 2017 16:24:14 +0200
+
+binutils (2.26.1-1ubuntu1~16.04.4) xenial-proposed; urgency=medium
+
+  * SRU
+  * POWER backports (LP: #1655181)
+    - Don't treat .opd section specially when ELFv2.
+    - Fix PowerPC64 ELFv1 undefined weak functions.
+    - Modify POWER9 support to match final ISA 3.0 documentation.
+  * Fix PR gold/18989. Implement --push-state/--pop-state. LP: #1623418.
+
+ -- Matthias Klose <doko@ubuntu.com>  Fri, 10 Feb 2017 02:30:30 +0100
+
 binutils (2.26.1-1ubuntu1~16.04.3) xenial-security; urgency=medium
 
   [ Matthias Klose ]

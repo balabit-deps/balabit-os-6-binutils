@@ -1,0 +1,346 @@
+From fc7afe8c75ccd6b34d8381384268d7cbe02cf1ed Mon Sep 17 00:00:00 2001
+From: Christophe Lyon <christophe.lyon@linaro.org>
+Date: Wed, 28 Sep 2016 01:37:52 +0200
+Subject: [PATCH] [ARM] PR ld/20608 Relocation truncated to fit:
+ R_ARM_THM_JUMP24 for relocation to PLT entry
+
+2016-09-28  Christophe Lyon  <christophe.lyon@linaro.org>
+
+	PR ld/20608
+	bfd/
+	* elf32-arm.c (arm_type_of_stub): Handle the case when the pre-PLT
+	Thumb-ARM stub is too far.
+
+	ld
+	* testsuite/ld-arm/arm-elf.exp: Handle new testcase.
+	* testsuite/ld-arm/farcall-mixed-app2.d: New file.
+	* testsuite/ld-arm/farcall-mixed-app2.r: Likewise.
+	* testsuite/ld-arm/farcall-mixed-app2.s: Likewise.
+	* testsuite/ld-arm/farcall-mixed-app2.sym: Likewise.
+---
+ bfd/elf32-arm.c                            | 47 ++++++++++++--
+ ld/testsuite/ld-arm/arm-elf.exp            |  6 ++
+ ld/testsuite/ld-arm/farcall-mixed-app2.d   | 99 ++++++++++++++++++++++++++++++
+ ld/testsuite/ld-arm/farcall-mixed-app2.r   | 10 +++
+ ld/testsuite/ld-arm/farcall-mixed-app2.s   | 76 +++++++++++++++++++++++
+ ld/testsuite/ld-arm/farcall-mixed-app2.sym | 15 +++++
+ 8 files changed, 267 insertions(+), 6 deletions(-)
+ create mode 100644 ld/testsuite/ld-arm/farcall-mixed-app2.d
+ create mode 100644 ld/testsuite/ld-arm/farcall-mixed-app2.r
+ create mode 100644 ld/testsuite/ld-arm/farcall-mixed-app2.s
+ create mode 100644 ld/testsuite/ld-arm/farcall-mixed-app2.sym
+
+diff --git a/bfd/elf32-arm.c b/bfd/elf32-arm.c
+index 3d4a458..700bec3 100644
+--- a/bfd/elf32-arm.c
++++ b/bfd/elf32-arm.c
+@@ -3877,17 +3877,43 @@ arm_type_of_stub (struct bfd_link_info *info,
+ 	  /* Note when dealing with PLT entries: the main PLT stub is in
+ 	     ARM mode, so if the branch is in Thumb mode, another
+ 	     Thumb->ARM stub will be inserted later just before the ARM
+-	     PLT stub. We don't take this extra distance into account
+-	     here, because if a long branch stub is needed, we'll add a
+-	     Thumb->Arm one and branch directly to the ARM PLT entry
+-	     because it avoids spreading offset corrections in several
+-	     places.  */
++	     PLT stub. If a long branch stub is needed, we'll add a
++	     Thumb->Arm one and branch directly to the ARM PLT entry.
++	     Here, we have to check if a pre-PLT Thumb->ARM stub
++	     is needed and if it will be close enough.  */
+ 
+ 	  destination = (splt->output_section->vma
+ 			 + splt->output_offset
+ 			 + root_plt->offset);
+ 	  st_type = STT_FUNC;
+-	  branch_type = ST_BRANCH_TO_ARM;
++
++	  /* Thumb branch/call to PLT: it can become a branch to ARM
++	     or to Thumb. We must perform the same checks and
++	     corrections as in elf32_arm_final_link_relocate.  */
++	  if ((r_type == R_ARM_THM_CALL)
++	      || (r_type == R_ARM_THM_JUMP24))
++	    {
++	      if (globals->use_blx
++		  && r_type == R_ARM_THM_CALL
++		  && !thumb_only)
++		{
++		  /* If the Thumb BLX instruction is available, convert
++		     the BL to a BLX instruction to call the ARM-mode
++		     PLT entry.  */
++		  branch_type = ST_BRANCH_TO_ARM;
++		}
++	      else
++		{
++		  if (!thumb_only)
++		    /* Target the Thumb stub before the ARM PLT entry.  */
++		    destination -= PLT_THUMB_STUB_SIZE;
++		  branch_type = ST_BRANCH_TO_THUMB;
++		}
++	    }
++	  else
++	    {
++	      branch_type = ST_BRANCH_TO_ARM;
++	    }
+ 	}
+     }
+   /* Calls to STT_GNU_IFUNC symbols should go through a PLT.  */
+@@ -3923,6 +3949,15 @@ arm_type_of_stub (struct bfd_link_info *info,
+                   || (r_type == R_ARM_THM_JUMP19))
+ 	      && !use_plt))
+ 	{
++	  /* If we need to insert a Thumb-Thumb long branch stub to a
++	     PLT, use one that branches directly to the ARM PLT
++	     stub. If we pretended we'd use the pre-PLT Thumb->ARM
++	     stub, undo this now.  */
++	  if ((branch_type == ST_BRANCH_TO_THUMB) && use_plt && !thumb_only) {
++	    branch_type = ST_BRANCH_TO_ARM;
++	    branch_offset += PLT_THUMB_STUB_SIZE;
++	  }
++
+ 	  if (branch_type == ST_BRANCH_TO_THUMB)
+ 	    {
+ 	      /* Thumb to thumb.  */
+diff --git a/ld/testsuite/ld-arm/arm-elf.exp b/ld/testsuite/ld-arm/arm-elf.exp
+index a5d4c87..50a2f26 100644
+--- a/ld/testsuite/ld-arm/arm-elf.exp
++++ b/ld/testsuite/ld-arm/arm-elf.exp
+@@ -556,6 +556,12 @@ set armeabitests_nonacl {
+       {readelf -Ds farcall-mixed-app.sym}}
+      "farcall-mixed-app-v5"}
+ 
++    {"Mixed ARM/Thumb2 dynamic application with farcalls" "tmpdir/mixed-lib.so -T arm-dyn.ld --section-start .mid_thumb=0x10081c0 --section-start .far_arm=0x2100000 --section-start .far_thumb=0x2200000" "" ""
++     {farcall-mixed-app2.s}
++     {{objdump -fdw farcall-mixed-app2.d} {objdump -Rw farcall-mixed-app2.r}
++      {readelf -Ds farcall-mixed-app2.sym}}
++     "farcall-mixed-app2"}
++
+     {"Mixed ARM/Thumb shared library with long branches (v4t)" "-shared -T arm-lib.ld" "" "-march=armv4t"
+      {farcall-mixed-lib1.s farcall-mixed-lib2.s}
+      {{objdump -fdw farcall-mixed-lib-v4t.d}}
+diff --git a/ld/testsuite/ld-arm/farcall-mixed-app2.d b/ld/testsuite/ld-arm/farcall-mixed-app2.d
+new file mode 100644
+index 0000000..54338d0
+--- /dev/null
++++ b/ld/testsuite/ld-arm/farcall-mixed-app2.d
+@@ -0,0 +1,99 @@
++
++tmpdir/farcall-mixed-app2:     file format elf32-(little|big)arm
++architecture: arm.*, flags 0x00000112:
++EXEC_P, HAS_SYMS, D_PAGED
++start address 0x.*
++
++Disassembly of section .plt:
++
++.* <lib_func2@plt-0x14>:
++ .*:	e52de004 	push	{lr}		; \(str lr, \[sp, #-4\]!\)
++ .*:	e59fe004 	ldr	lr, \[pc, #4\]	; .* <lib_func2@plt-0x4>
++ .*:	e08fe00e 	add	lr, pc, lr
++ .*:	e5bef008 	ldr	pc, \[lr, #8\]!
++ .*:	.*
++.* <lib_func2@plt>:
++ .*:	4778      	bx	pc
++ .*:	46c0      	nop			; \(mov r8, r8\)
++ .*:	e28fc6.* 	add	ip, pc, #.*
++ .*:	e28cca.* 	add	ip, ip, #.*	; 0x.*
++ .*:	e5bcf.* 	ldr	pc, \[ip, #.*\]!.*
++.* <lib_func1@plt>:
++ .*:	e28fc6.* 	add	ip, pc, #.*
++ .*:	e28cca.* 	add	ip, ip, #.*	; 0x.*
++ .*:	e5bcf.* 	ldr	pc, \[ip, #.*\]!.*
++
++Disassembly of section .text:
++
++.* <_start>:
++ .*:	e1a0c00d 	mov	ip, sp
++ .*:	e92dd800 	push	{fp, ip, lr, pc}
++ .*:	eb000008 	bl	.* <__app_func_veneer>
++ .*:	ebfffff6 	bl	.* <lib_func1@plt>
++ .*:	ebfffff2 	bl	.* <lib_func2@plt\+0x4>
++ .*:	e89d6800 	ldm	sp, {fp, sp, lr}
++ .*:	e12fff1e 	bx	lr
++ .*:	e1a00000 	nop			; \(mov r0, r0\)
++
++.* <app_tfunc_close>:
++ .*:	b500      	push	{lr}
++ .*:	f7ff efde 	blx	81e0 <lib_func2@plt\+0x4>
++ .*:	bd00      	pop	{pc}
++ .*:	4770      	bx	lr
++ .*:	46c0      	nop			; \(mov r8, r8\)
++#...
++
++.* <__app_func_veneer>:
++ .*:	e51ff004 	ldr	pc, \[pc, #-4\]	; 8234 <__app_func_veneer\+0x4>
++ .*:	02100000 	.word	0x02100000
++
++Disassembly of section .mid_thumb:
++
++.* <mid_tfunc>:
++#...
++ .*:	f400 9000 	b.w	.* <lib_func2@plt>
++ .*:	f000 b800 	b.w	.* <__lib_func2_from_thumb>
++
++.* <__lib_func2_from_thumb>:
++ .*:	4778      	bx	pc
++ .*:	46c0      	nop			; \(mov r8, r8\)
++ .*:	e51ff004 	ldr	pc, \[pc, #-4\]	; 10081e8 <__lib_func2_from_thumb\+0x8>
++ .*:	000081e0 	.word	0x000081e0
++ .*:	00000000 	.word	0x00000000
++
++Disassembly of section .far_arm:
++
++.* <app_func>:
++ .*:	e1a0c00d 	mov	ip, sp
++ .*:	e92dd800 	push	{fp, ip, lr, pc}
++ .*:	eb000006 	bl	.* <__lib_func1_veneer>
++ .*:	eb000007 	bl	.* <__lib_func2_veneer>
++ .*:	e89d6800 	ldm	sp, {fp, sp, lr}
++ .*:	e12fff1e 	bx	lr
++ .*:	e1a00000 	nop			; \(mov r0, r0\)
++ .*:	e1a00000 	nop			; \(mov r0, r0\)
++
++.* <app_func2>:
++ .*:	e12fff1e 	bx	lr
++#...
++
++.* <__lib_func1_veneer>:
++ .*:	e51ff004 	ldr	pc, \[pc, #-4\]	; .* <__lib_func1_veneer\+0x4>
++ .*:	000081ec 	.word	0x000081ec
++.* <__lib_func2_veneer>:
++ .*:	e51ff004 	ldr	pc, \[pc, #-4\]	; .* <__lib_func2_veneer\+0x4>
++ .*:	000081e0 	.word	0x000081e0
++
++Disassembly of section .far_thumb:
++
++.* <app_tfunc>:
++ .*:	b500      	push	{lr}
++ .*:	f000 e806 	blx	.* <__lib_func2_from_thumb>
++ .*:	bd00      	pop	{pc}
++ .*:	4770      	bx	lr
++ .*:	46c0      	nop			; \(mov r8, r8\)
++#...
++
++.* <__lib_func2_from_thumb>:
++ .*:	e51ff004 	ldr	pc, \[pc, #-4\]	; 2200014 <__lib_func2_from_thumb\+0x4>
++ .*:	000081e0 	.word	0x000081e0
+diff --git a/ld/testsuite/ld-arm/farcall-mixed-app2.r b/ld/testsuite/ld-arm/farcall-mixed-app2.r
+new file mode 100644
+index 0000000..910a361
+--- /dev/null
++++ b/ld/testsuite/ld-arm/farcall-mixed-app2.r
+@@ -0,0 +1,10 @@
++
++tmpdir/farcall-mixed-app.*:     file format elf32-(little|big)arm
++
++DYNAMIC RELOCATION RECORDS
++OFFSET   TYPE              VALUE 
++.* R_ARM_COPY        data_obj
++.* R_ARM_JUMP_SLOT   lib_func2
++.* R_ARM_JUMP_SLOT   lib_func1
++
++
+diff --git a/ld/testsuite/ld-arm/farcall-mixed-app2.s b/ld/testsuite/ld-arm/farcall-mixed-app2.s
+new file mode 100644
+index 0000000..ee315e9
+--- /dev/null
++++ b/ld/testsuite/ld-arm/farcall-mixed-app2.s
+@@ -0,0 +1,76 @@
++	.text
++	.p2align 4
++	.globl _start
++_start:
++	mov	ip, sp
++	stmdb	sp!, {r11, ip, lr, pc}
++	bl	app_func
++	bl	lib_func1
++	bl	lib_func2
++	ldmia	sp, {r11, sp, lr}
++	bx lr
++
++	.p2align 4
++	.globl app_tfunc_close
++	.type app_tfunc_close,%function
++	.thumb_func
++	.code 16
++app_tfunc_close:
++	push	{lr}
++	bl	lib_func2
++	pop	{pc}
++	bx	lr
++
++@ We will place the section .mid_thumb at 0xFFFEF8.
++@ Just far enough for XXXX
++	.section .mid_thumb, "xa"
++
++	.p2align 4
++	.globl mid_tfunc
++	.type mid_tfunc,%function
++	.thumb_func
++	.code 16
++mid_tfunc:
++	.syntax unified
++	.space 24
++	b.w	lib_func2
++	b.w	lib_func2
++
++@ We will place the section .far_arm at 0x2100000.
++	.section .far_arm, "xa"
++
++	.arm
++	.p2align 4
++	.globl app_func
++	.type app_func,%function
++app_func:
++	mov	ip, sp
++	stmdb	sp!, {r11, ip, lr, pc}
++	bl	lib_func1
++	bl	lib_func2
++	ldmia	sp, {r11, sp, lr}
++	bx lr
++
++	.arm
++	.p2align 4
++	.globl app_func2
++	.type app_func2,%function
++app_func2:
++	bx	lr
++
++@ We will place the section .far_thumb at 0x2200000.
++	.section .far_thumb, "xa"
++
++	.p2align 4
++	.globl app_tfunc
++	.type app_tfunc,%function
++	.thumb_func
++	.code 16
++app_tfunc:
++	push	{lr}
++	bl	lib_func2
++	pop	{pc}
++	bx	lr
++
++	.data
++	.long data_obj
+diff --git a/ld/testsuite/ld-arm/farcall-mixed-app2.sym b/ld/testsuite/ld-arm/farcall-mixed-app2.sym
+new file mode 100644
+index 0000000..1d3bd1d
+--- /dev/null
++++ b/ld/testsuite/ld-arm/farcall-mixed-app2.sym
+@@ -0,0 +1,15 @@
++
++Symbol table for image:
++ +Num +Buc: +Value +Size +Type +Bind +Vis +Ndx +Name
++ +.. +..: ........ +0 +NOTYPE +GLOBAL +DEFAULT +11 _edata
++ +.. +..: ........ +0 +NOTYPE +GLOBAL +DEFAULT +12 __bss_start__
++ +.. +..: ........ +0 +NOTYPE +GLOBAL +DEFAULT +12 _end
++ +.. +..: ........ +4 +OBJECT +GLOBAL +DEFAULT +12 data_obj
++ +.. +..: ........ +0 +NOTYPE +GLOBAL +DEFAULT +12 __bss_end__
++ +.. +..: 0*[^0]*.* +0 +FUNC +GLOBAL +DEFAULT +UND lib_func1
++ +.. +..: ........ +0 +NOTYPE +GLOBAL +DEFAULT +11 __data_start
++ +.. +..: ........ +0 +NOTYPE +GLOBAL +DEFAULT +12 __end__
++ +.. +..: ........ +0 +NOTYPE +GLOBAL +DEFAULT +12 __bss_start
++ +.. +..: .......0 +0 +FUNC +GLOBAL +DEFAULT +15 app_func2
++ +.. +..: 0*[^0]*.* +0 +FUNC +GLOBAL +DEFAULT +UND lib_func2
++ +.. +..: ........ +0 +NOTYPE +GLOBAL +DEFAULT +12 _bss_end__
+-- 
+2.9.3
+

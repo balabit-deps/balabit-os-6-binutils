@@ -1,0 +1,344 @@
+diff --git a/gas/ChangeLog b/gas/ChangeLog
+index 66bc9a3..2f783e5 100644
+--- a/gas/ChangeLog
++++ b/gas/ChangeLog
+@@ -1,3 +1,14 @@
++2016-09-16  Peter Bergner <bergner@vnet.ibm.com>
++
++	Apply from master.
++	2016-09-14  Peter Bergner <bergner@vnet.ibm.com>
++
++	* testsuite/gas/ppc/power9.d <slbiag, cpabort> New tests.
++	<addex., brd, brh, brw, lwzmx, nandxor, rldixor, setbool,
++	xor3, cp_abort, copy_first, paste, paste_last, sync>: Remove tests.
++	<copy, paste.>: Update tests.
++	* testsuite/gas/ppc/power9.s: Likewise.
++
+ 2016-06-29  Tristan Gingold  <gingold@adacore.com>
+ 
+ 	* configure: Regenerate.
+diff --git a/gas/testsuite/gas/ppc/power9.d b/gas/testsuite/gas/ppc/power9.d
+index 5004e11..4da740d 100644
+--- a/gas/testsuite/gas/ppc/power9.d
++++ b/gas/testsuite/gas/ppc/power9.d
+@@ -278,14 +278,6 @@ Disassembly of section \.text:
+ .*:	(7f a8 49 80|80 49 a8 7f) 	cmprb   cr7,1,r8,r9
+ .*:	(7d e0 01 00|00 01 e0 7d) 	setb    r15,cr0
+ .*:	(7d fc 01 00|00 01 fc 7d) 	setb    r15,cr7
+-.*:	(7e 00 01 01|01 01 00 7e) 	setbool r16,lt
+-.*:	(7e 01 01 01|01 01 01 7e) 	setbool r16,gt
+-.*:	(7e 02 01 01|01 01 02 7e) 	setbool r16,eq
+-.*:	(7e 03 01 01|01 01 03 7e) 	setbool r16,so
+-.*:	(7e 1c 01 01|01 01 1c 7e) 	setbool r16,4\*cr7\+lt
+-.*:	(7e 1d 01 01|01 01 1d 7e) 	setbool r16,4\*cr7\+gt
+-.*:	(7e 1e 01 01|01 01 1e 7e) 	setbool r16,4\*cr7\+eq
+-.*:	(7e 1f 01 01|01 01 1f 7e) 	setbool r16,4\*cr7\+so
+ .*:	(7f 40 52 1a|1a 52 40 7f) 	lxvl    vs26,0,r10
+ .*:	(7f 14 52 1b|1b 52 14 7f) 	lxvl    vs56,r20,r10
+ .*:	(7f 60 5b 1a|1a 5b 60 7f) 	stxvl   vs27,0,r11
+@@ -329,6 +321,7 @@ Disassembly of section \.text:
+ .*:	(4c e0 80 04|04 80 e0 4c) 	addpcis r7,-32768
+ .*:	(4c e0 80 04|04 80 e0 4c) 	addpcis r7,-32768
+ .*:	(7c 00 02 a4|a4 02 00 7c) 	slbsync
++.*:	(7d 40 06 a4|a4 06 40 7d) 	slbiag  r10
+ .*:	(7d 40 5b a4|a4 5b 40 7d) 	slbieg  r10,r11
+ .*:	(7c 60 27 26|26 27 60 7c) 	slbmfee r3,r4
+ .*:	(7c 60 27 26|26 27 60 7c) 	slbmfee r3,r4
+@@ -342,14 +335,9 @@ Disassembly of section \.text:
+ .*:	(7c 00 1a 24|24 1a 00 7c) 	tlbiel  r3
+ .*:	(7c 00 1a 24|24 1a 00 7c) 	tlbiel  r3
+ .*:	(7c 8f 1a 24|24 1a 8f 7c) 	tlbiel  r3,r4,3,1,1
+-.*:	(7c 0c 6e 0c|0c 6e 0c 7c) 	copy    r12,r13
+-.*:	(7c 2c 6e 0c|0c 6e 2c 7c) 	copy_first r12,r13
+-.*:	(7c 2c 6e 0c|0c 6e 2c 7c) 	copy_first r12,r13
+-.*:	(7c 0a 5f 0c|0c 5f 0a 7c) 	paste   r10,r11
+-.*:	(7c 0a 5f 0c|0c 5f 0a 7c) 	paste   r10,r11
+-.*:	(7c 2a 5f 0d|0d 5f 2a 7c) 	paste_last r10,r11
+-.*:	(7c 2a 5f 0d|0d 5f 2a 7c) 	paste_last r10,r11
+-.*:	(7c 00 06 8c|8c 06 00 7c) 	cp_abort
++.*:	(7c 2c 6e 0c|0c 6e 2c 7c) 	copy    r12,r13
++.*:	(7c 2a 5f 0d|0d 5f 2a 7c) 	paste\.  r10,r11
++.*:	(7c 00 06 8c|8c 06 00 7c) 	cpabort
+ .*:	(7c 00 04 ac|ac 04 00 7c) 	hwsync
+ .*:	(7c 00 04 ac|ac 04 00 7c) 	hwsync
+ .*:	(7c 00 04 ac|ac 04 00 7c) 	hwsync
+@@ -357,8 +345,6 @@ Disassembly of section \.text:
+ .*:	(7c 20 04 ac|ac 04 20 7c) 	lwsync
+ .*:	(7c 40 04 ac|ac 04 40 7c) 	ptesync
+ .*:	(7c 40 04 ac|ac 04 40 7c) 	ptesync
+-.*:	(7c 07 04 ac|ac 04 07 7c) 	sync    0,7
+-.*:	(7c 28 04 ac|ac 04 28 7c) 	sync    1,8
+ .*:	(7e 80 04 cc|cc 04 80 7e) 	ldat    r20,0,0
+ .*:	(7e 8a e4 cc|cc e4 8a 7e) 	ldat    r20,r10,28
+ .*:	(7e a0 04 8c|8c 04 a0 7e) 	lwat    r21,0,0
+@@ -371,8 +357,6 @@ Disassembly of section \.text:
+ .*:	(7c 00 f6 e4|e4 f6 00 7c) 	rmieg   r30
+ .*:	(7d 40 7a 6a|6a 7a 40 7d) 	ldmx    r10,0,r15
+ .*:	(7d 43 7a 6a|6a 7a 43 7d) 	ldmx    r10,r3,r15
+-.*:	(7d 60 83 6a|6a 83 60 7d) 	lwzmx   r11,0,r16
+-.*:	(7d 63 83 6a|6a 83 63 7d) 	lwzmx   r11,r3,r16
+ .*:	(4c 00 02 e4|e4 02 00 4c) 	stop
+ .*:	(7c 00 00 3c|3c 00 00 7c) 	wait    
+ .*:	(7c 00 00 3c|3c 00 00 7c) 	wait    
+@@ -395,9 +379,6 @@ Disassembly of section \.text:
+ .*:	(7d 6c 69 54|54 69 6c 7d) 	addex   r11,r12,r13,0
+ .*:	(7d 6c 6b 54|54 6b 6c 7d) 	addex   r11,r12,r13,1
+ .*:	(7d 6c 6d 54|54 6d 6c 7d) 	addex   r11,r12,r13,2
+-.*:	(7e b6 b9 55|55 b9 b6 7e) 	addex\.  r21,r22,r23,0
+-.*:	(7e b6 bb 55|55 bb b6 7e) 	addex\.  r21,r22,r23,1
+-.*:	(7e b6 bd 55|55 bd b6 7e) 	addex\.  r21,r22,r23,2
+ .*:	(ff 20 04 8e|8e 04 20 ff) 	mffs    f25
+ .*:	(ff 20 04 8f|8f 04 20 ff) 	mffs\.   f25
+ .*:	(ff 41 04 8e|8e 04 41 ff) 	mffsce  f26
+@@ -408,12 +389,4 @@ Disassembly of section \.text:
+ .*:	(ff d7 04 8e|8e 04 d7 ff) 	mffscrni f30,0
+ .*:	(ff d7 1c 8e|8e 1c d7 ff) 	mffscrni f30,3
+ .*:	(ff f8 04 8e|8e 04 f8 ff) 	mffsl   f31
+-.*:	(7e 8a 01 76|76 01 8a 7e) 	brd     r10,r20
+-.*:	(7e ab 01 b6|b6 01 ab 7e) 	brh     r11,r21
+-.*:	(7e cc 01 36|36 01 cc 7e) 	brw     r12,r22
+-.*:	(11 6a 63 77|77 63 6a 11) 	nandxor r10,r11,r12,r13
+-.*:	(12 b4 b5 f6|f6 b5 b4 12) 	xor3    r20,r21,r22,r23
+-.*:	(11 6a 60 34|34 60 6a 11) 	rldixor r10,r11,0,r12
+-.*:	(11 6a 66 f4|f4 66 6a 11) 	rldixor r10,r11,27,r12
+-.*:	(11 6a 67 f5|f5 67 6a 11) 	rldixor r10,r11,63,r12
+ #pass
+diff --git a/gas/testsuite/gas/ppc/power9.s b/gas/testsuite/gas/ppc/power9.s
+index 851c146..5fcf4a7 100644
+--- a/gas/testsuite/gas/ppc/power9.s
++++ b/gas/testsuite/gas/ppc/power9.s
+@@ -269,14 +269,6 @@ power9:
+ 	cmprb       7,1,8,9
+ 	setb        15,0
+ 	setb        15,7
+-	setbool     16,0
+-	setbool     16,1
+-	setbool     16,2
+-	setbool     16,3
+-	setbool     16,28
+-	setbool     16,29
+-	setbool     16,30
+-	setbool     16,31
+ 	lxvl        26,0,10
+ 	lxvl        56,20,10
+ 	stxvl       27,0,11
+@@ -320,6 +312,7 @@ power9:
+ 	addpcis     7,-0x8000
+ 	subpcis     7,0x8000
+ 	slbsync
++	slbiag      10
+ 	slbieg      10,11
+ 	slbmfee     3,4
+ 	slbmfee     3,4,0
+@@ -333,23 +326,16 @@ power9:
+ 	tlbiel      3
+ 	tlbiel      3,0,0,0,0
+ 	tlbiel      3,4,3,1,1
+-	copy        12,13,0
+-	copy_first  12,13
+-	copy        12,13,1
+-	paste       10,11,0
+-	paste       10,11
+-	paste.      10,11,1
+-	paste_last  10,11
+-	cp_abort
++	copy        12,13
++	paste.      10,11
++	cpabort
+ 	hwsync
+ 	sync
+-	sync        0,0x0
++	sync        0
+ 	lwsync
+-	sync        1,0x0
++	sync        1
+ 	ptesync
+-	sync        2,0x0
+-	sync	    0,0x7
+-	sync	    1,0x8
++	sync        2
+ 	ldat        20,0,0x0
+ 	ldat        20,10,0x1c
+ 	lwat        21,0,0x0
+@@ -362,8 +348,6 @@ power9:
+ 	rmieg       30
+ 	ldmx        10,0,15
+ 	ldmx        10,3,15
+-	lwzmx       11,0,16
+-	lwzmx       11,3,16
+ 	stop
+ 	wait
+ 	wait        0
+@@ -386,9 +370,6 @@ power9:
+ 	addex       11,12,13,0
+ 	addex       11,12,13,1
+ 	addex       11,12,13,2
+-	addex.      21,22,23,0
+-	addex.      21,22,23,1
+-	addex.      21,22,23,2
+ 	mffs        25
+ 	mffs.       25
+ 	mffsce      26
+@@ -399,11 +380,3 @@ power9:
+ 	mffscrni    30,0
+ 	mffscrni    30,3
+ 	mffsl       31
+-	brd         10,20
+-	brh         11,21
+-	brw         12,22
+-	nandxor     10,11,12,13
+-	xor3        20,21,22,23
+-	rldixor     10,11,0,12
+-	rldixor     10,11,27,12
+-	rldixor     10,11,63,12
+diff --git a/opcodes/ChangeLog b/opcodes/ChangeLog
+index a26cec1..d384e52 100644
+--- a/opcodes/ChangeLog
++++ b/opcodes/ChangeLog
+@@ -1,3 +1,22 @@
++2016-09-16  Peter Bergner <bergner@vnet.ibm.com>
++
++	Apply from master.
++	2016-09-14  Peter Bergner <bergner@vnet.ibm.com>
++
++	* ppc-opc.c (powerpc_opcodes) <slbiag>: New mnemonic.
++	<addex., brd, brh, brw, lwzmx, nandxor, rldixor, setbool,
++	xor3>: Delete mnemonics.
++	<cp_abort>: Rename mnemonic from ...
++	<cpabort>: ...to this.
++	<setb>: Change to a X form instruction.
++	<sync>: Change to 1 operand form.
++	<copy>: Delete mnemonic.
++	<copy_first>: Rename mnemonic from ...
++	<copy>: ...to this.
++	<paste, paste.>: Delete mnemonics.
++	<paste_last>: Rename mnemonic from ...
++	<paste.>: ...to this.
++
+ 2016-06-29  Tristan Gingold  <gingold@adacore.com>
+ 
+ 	* configure: Regenerate.
+diff --git a/opcodes/ppc-opc.c b/opcodes/ppc-opc.c
+index 21932f8..1e4cb6f 100644
+--- a/opcodes/ppc-opc.c
++++ b/opcodes/ppc-opc.c
+@@ -3154,7 +3154,6 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ {"machhwu.",	XO (4,	12,0,1),XO_MASK,     MULHW|PPCVLE, PPCNONE,	{RT, RA, RB}},
+ {"ps_muls1",	A  (4,	13,0),	AFRB_MASK,   PPCPS,	PPCNONE,	{FRT, FRA, FRC}},
+ {"ps_muls1.",	A  (4,	13,1),	AFRB_MASK,   PPCPS,	PPCNONE,	{FRT, FRA, FRC}},
+-{"rldixor",     VXASH(4,26),    VXASH_MASK,  POWER9,	PPCNONE,	{RA, RS, SH6, RB}},
+ {"ps_madds0",	A  (4,	14,0),	A_MASK,      PPCPS,	PPCNONE,	{FRT, FRA, FRC, FRB}},
+ {"ps_madds0.",	A  (4,	14,1),	A_MASK,      PPCPS,	PPCNONE,	{FRT, FRA, FRC, FRB}},
+ {"ps_madds1",	A  (4,	15,0),	A_MASK,      PPCPS,	PPCNONE,	{FRT, FRA, FRC, FRB}},
+@@ -3201,8 +3200,6 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ {"ps_nmadd",	A  (4,	31,0),	A_MASK,      PPCPS,	PPCNONE,	{FRT, FRA, FRC, FRB}},
+ {"ps_nmadd.",	A  (4,	31,1),	A_MASK,      PPCPS,	PPCNONE,	{FRT, FRA, FRC, FRB}},
+ {"ps_cmpo0",	X  (4,	32),    XBF_MASK,    PPCPS,	PPCNONE,	{BF, FRA, FRB}},
+-{"xor3",	VXA(4,  54),	VXA_MASK,    POWER9,	PPCNONE,	{RA, RS, RB, RC}},
+-{"nandxor",	VXA(4,  55),	VXA_MASK,    POWER9,	PPCNONE,	{RA, RS, RB, RC}},
+ {"vpermr",	VXA(4,	59),	VXA_MASK,    PPCVEC3,	PPCNONE,	{VD, VA, VB, VC}},
+ {"vaddeuqm",	VXA(4,	60),	VXA_MASK,    PPCVEC2,	PPCNONE,	{VD, VA, VB, VC}},
+ {"vaddecuq",	VXA(4,	61),	VXA_MASK,    PPCVEC2,	PPCNONE,	{VD, VA, VB, VC}},
+@@ -4936,8 +4933,7 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ 
+ {"dcbfep",	XRT(31,127,0),	XRT_MASK,    E500MC|PPCA2|PPCVLE, PPCNONE, {RA0, RB}},
+ 
+-{"setb",	VX(31,256),	VXVB_MASK|(3<<16), POWER9, PPCNONE,	{RT, BFA}},
+-{"setbool",	VX(31,257),	VXVB_MASK,         POWER9, PPCNONE,	{RT, BA}},
++{"setb",	X(31,128),	XRB_MASK|(3<<16), POWER9, PPCNONE,	{RT, BFA}},
+ 
+ {"wrtee",	X(31,131),	XRARB_MASK,  PPC403|BOOKE|PPCA2|PPC476|PPCVLE, PPCNONE, {RS}},
+ 
+@@ -4987,8 +4983,6 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ 
+ {"prtyw",	X(31,154),	XRB_MASK, POWER6|PPCA2|PPC476, PPCNONE,	{RA, RS}},
+ 
+-{"brw",		X(31,155),	XRB_MASK,    POWER9,	PPCNONE,	{RA, RS}},
+-
+ {"stdepx",	X(31,157),	X_MASK,	     E500MC|PPCA2|PPCVLE, PPCNONE, {RS, RA0, RB}},
+ 
+ {"stwepx",	X(31,159),	X_MASK,	     E500MC|PPCA2|PPCVLE, PPCNONE, {RS, RA0, RB}},
+@@ -5001,7 +4995,6 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ {"sthfcmx",	APU(31,167,0), 	APU_MASK,    PPC405,	PPCNONE,	{FCRT, RA, RB}},
+ 
+ {"addex",	ZRC(31,170,0),	Z2_MASK,     POWER9,	PPCNONE,	{RT, RA, RB, CY}},
+-{"addex.",	ZRC(31,170,1),	Z2_MASK,     POWER9,	PPCNONE,	{RT, RA, RB, CY}},
+ 
+ {"msgclrp",	XRTRA(31,174,0,0), XRTRA_MASK, POWER8,	PPCNONE,	{RB}},
+ {"dcbtlse",	X(31,174),	X_MASK,      PPCCHLK,	E500MC,		{CT, RA0, RB}},
+@@ -5026,8 +5019,6 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ 
+ {"prtyd",	X(31,186),	XRB_MASK, POWER6|PPCA2,	PPCNONE,	{RA, RS}},
+ 
+-{"brd",		X(31,187),	XRB_MASK,    POWER9,    PPCNONE,	{RA, RS}},
+-
+ {"cmprb",	X(31,192),	XCMP_MASK,   POWER9,	PPCNONE,	{BF, L, RA, RB}},
+ 
+ {"icblq.",	XRC(31,198,1),	X_MASK,      E6500,	PPCNONE,	{CT, RA0, RB}},
+@@ -5066,8 +5057,6 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ {"sleq",	XRC(31,217,0),	X_MASK,      M601,	PPCNONE,	{RA, RS, RB}},
+ {"sleq.",	XRC(31,217,1),	X_MASK,      M601,	PPCNONE,	{RA, RS, RB}},
+ 
+-{"brh",		X(31,219),	XRB_MASK,    POWER9,	PPCNONE,	{RA, RS}},
+-
+ {"stbepx",	X(31,223),	X_MASK,      E500MC|PPCA2|PPCVLE, PPCNONE, {RS, RA0, RB}},
+ 
+ {"cmpeqb",	X(31,224),	XCMPL_MASK,   POWER9,	PPCNONE,	{BF, RA, RB}},
+@@ -5534,8 +5523,6 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ 
+ {"mtvsrdd",	X(31,435),	XX1_MASK,    PPCVSX3,	PPCNONE,	{XT6, RA0, RB}},
+ 
+-{"lwzmx",	X(31,437),	X_MASK,      POWER9,	PPCNONE,  	{RT, RA0, RB}},
+-
+ {"ecowx",	X(31,438),	X_MASK,      PPC,	E500|TITAN,  	{RT, RA0, RB}},
+ 
+ {"sthux",	X(31,439),	X_MASK,      COM|PPCVLE, PPCNONE,	{RS, RAS, RB}},
+@@ -5899,8 +5886,8 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ {"hwsync",	XSYNC(31,598,0), 0xffffffff, POWER4,	BOOKE|PPC476,	{0}},
+ {"lwsync",	XSYNC(31,598,1), 0xffffffff, PPC,	E500,		{0}},
+ {"ptesync",	XSYNC(31,598,2), 0xffffffff, PPC64,	PPCNONE,	{0}},
+-{"sync",	X(31,598),	XSYNCLE_MASK,POWER9|E6500, PPCNONE,	{LS, ESYNC}},
+-{"sync",	X(31,598),	XSYNC_MASK, PPCCOM|PPCVLE, BOOKE|PPC476|POWER9, {LS}},
++{"sync",	X(31,598),	XSYNCLE_MASK,E6500,	PPCNONE,	{LS, ESYNC}},
++{"sync",	X(31,598),	XSYNC_MASK, PPCCOM|PPCVLE, BOOKE|PPC476,{LS}},
+ {"msync",	X(31,598),	0xffffffff, BOOKE|PPCA2|PPC476, PPCNONE, {0}},
+ {"sync",	X(31,598),	0xffffffff, BOOKE|PPC476, E6500,	{0}},
+ {"lwsync",	X(31,598),	0xffffffff, E500,	PPCNONE,	{0}},
+@@ -6065,8 +6052,7 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ 
+ {"lvsm",	X(31,773),	X_MASK,      PPCVEC2,	PPCNONE,	{VD, RA0, RB}},
+ 
+-{"copy_first",	XOPL(31,774,1),	XRT_MASK,    POWER9,	PPCNONE,	{RA0, RB}},
+-{"copy",	X(31,774),	XLRT_MASK,   POWER9,	PPCNONE,	{RA0, RB, L}},
++{"copy",	XOPL(31,774,1),	XRT_MASK,    POWER9,	PPCNONE,	{RA0, RB}},
+ 
+ {"stvepxl",	X(31,775),	X_MASK,      PPCVEC2,	PPCNONE,	{VS, RA0, RB}},
+ {"lvlxl",	X(31,775),	X_MASK,      CELL,	PPCNONE,	{VD, RA0, RB}},
+@@ -6136,7 +6122,7 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ 
+ {"lvtlxl",	X(31,837),	X_MASK,      PPCVEC2,	PPCNONE,	{VD, RA0, RB}},
+ 
+-{"cp_abort",	X(31,838),	XRTRARB_MASK,POWER9,	PPCNONE,	{0}},
++{"cpabort",	X(31,838),	XRTRARB_MASK,POWER9,	PPCNONE,	{0}},
+ 
+ {"divo",	XO(31,331,1,0),	XO_MASK,     M601,	PPCNONE,	{RT, RA, RB}},
+ {"divo.",	XO(31,331,1,1),	XO_MASK,     M601,	PPCNONE,	{RT, RA, RB}},
+@@ -6148,6 +6134,7 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ 
+ {"tlbsrx.",	XRC(31,850,1),	XRT_MASK,    PPCA2,	PPCNONE,	{RA0, RB}},
+ 
++{"slbiag",	X(31,850),	XRARB_MASK,  POWER9,	PPCNONE,	{RS}},
+ {"slbmfev",	X(31,851),	XRLA_MASK,   POWER9,	PPCNONE,	{RT, RB, A_L}},
+ {"slbmfev",	X(31,851),	XRA_MASK,    PPC64,	POWER9,		{RT, RB}},
+ 
+@@ -6183,9 +6170,7 @@ const struct powerpc_opcode powerpc_opcodes[] = {
+ {"extswsli",	XS(31,445,0),	XS_MASK,     POWER9,	PPCNONE,	{RA, RS, SH6}},
+ {"extswsli.",	XS(31,445,1),	XS_MASK,     POWER9,	PPCNONE,	{RA, RS, SH6}},
+ 
+-{"paste",	XRC(31,902,0),  XLRT_MASK,   POWER9,	PPCNONE,	{RA0, RB, L0}},
+-{"paste_last",	XRCL(31,902,1,1),XRT_MASK,   POWER9,	PPCNONE,	{RA0, RB}},
+-{"paste.",	XRC(31,902,1),  XLRT_MASK,   POWER9,	PPCNONE,	{RA0, RB, L1}},
++{"paste.",	XRCL(31,902,1,1),XRT_MASK,   POWER9,	PPCNONE,	{RA0, RB}},
+ 
+ {"stvlxl",	X(31,903),	X_MASK,      CELL,	PPCNONE,	{VS, RA0, RB}},
+ {"stdfcmux",	APU(31,903,0), 	APU_MASK,    PPC405,	PPCNONE,	{FCRT, RA, RB}},

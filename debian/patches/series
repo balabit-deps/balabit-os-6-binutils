@@ -30,3 +30,15 @@ pr19886.diff
 vulcan-name.patch
 vulcan-features.patch
 pr20428.diff
+
+# patches taken from the 2.26 branch
+power9-isa-3.0.diff
+
+# patches taken from the 2.27 branch
+power9-001.diff
+power9-004.diff
+
+# patches taken from the trunk
+pr18989.diff
+pr20608.diff
+pr19353.diff
