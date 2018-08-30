@@ -1,0 +1,28 @@
+Description: fix bound check when parsing invalid -march= options
+
+This is a partial cherrypick of
+commit 952c3f51ac994f5e98aa829076609124cf9e5243
+Author: Andreas Krebbel <krebbel@linux.vnet.ibm.com>
+Date:   Mon Sep 12 16:32:02 2016 +0200
+
+    S/390: Add alternate processor names.
+
+In addition to adding support for alternate processor names, that
+commit also fixed a segmentation fault upon attempting to parse
+invalid/maximum march option.
+
+This patch just cherrypicks the bound checking hunk.
+
+diff -Nurp binutils-2.26.1-orig/gas/config/tc-s390.c binutils-2.26.1/gas/config/tc-s390.c
+--- binutils-2.26.1-orig/gas/config/tc-s390.c	2018-07-04 09:55:49.522015395 +0200
++++ binutils-2.26.1/gas/config/tc-s390.c	2018-07-04 09:56:06.642098477 +0200
+@@ -321,6 +321,9 @@ s390_parse_cpu (char *         arg,
+ 	}
+     }
+ 
++  if (icpu == S390_OPCODE_MAXCPU)
++    return S390_OPCODE_MAXCPU;
++
+   ilp_bak = input_line_pointer;
+   if (icpu != S390_OPCODE_MAXCPU)
+     {

@@ -1,3 +1,9 @@
+binutils (2.26.1-1ubuntu1~16.04.7) xenial; urgency=medium
+
+  * binutils-march-fix.patch: Fix -march= option parsing bound check. LP: #1781242
+
+ -- Dimitri John Ledkov <xnox@ubuntu.com>  Thu, 30 Aug 2018 14:39:04 +0100
+
 binutils (2.26.1-1ubuntu1~16.04.6) xenial; urgency=medium
 
   * pr19353.diff: Fix internal error when applying TLSDESC relocations with no TLS
