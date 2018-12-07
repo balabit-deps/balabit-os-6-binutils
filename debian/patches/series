@@ -36,7 +36,6 @@ pr20428.diff
 power9-isa-3.0.diff
 
 # patches taken from the 2.27 branch
-power9-001.diff
 power9-004.diff
 
 # patches taken from the trunk

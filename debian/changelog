@@ -1,3 +1,9 @@
+binutils (2.26.1-1ubuntu1~16.04.8) xenial; urgency=medium
+
+  * power9-001.diff: Drop this patch as it breaks IFUNC on ELFv1 (LP: #1807448)
+
+ -- Adam Conrad <adconrad@ubuntu.com>  Fri, 07 Dec 2018 12:49:49 -0700
+
 binutils (2.26.1-1ubuntu1~16.04.7) xenial; urgency=medium
 
   * binutils-march-fix.patch: Fix -march= option parsing bound check. LP: #1781242
